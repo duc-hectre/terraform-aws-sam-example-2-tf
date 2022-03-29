@@ -227,7 +227,7 @@ resource "aws_codepipeline" "_" {
         Capabilities   = "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND"
         OutputFileName = "ChangeSetExecuteOutput.json"
         StackName      = var.stack_name
-        ChangeSetName  = "${var.stack_name}_deploy"
+        ChangeSetName  = "${var.stack_name}-deploy"
       }
     }
   }
