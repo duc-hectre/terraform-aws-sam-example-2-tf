@@ -27,8 +27,8 @@ module "aws_sam_iam" {
 
   assume_role_policy = file("${path.root}/policies/code_pipeline_assume_role.json")
   template           = file("${path.root}/policies/cicd_policy.json")
-  role_name          = "${local.resource_name_prefix}_cicd_pipeline-role"
-  policy_name        = "${local.resource_name_prefix}_cicd_pipeline-policy"
+  role_name          = "sam_cicd_pipeline_role"
+  policy_name        = "sam_cicd_pipeline_policy"
   role_vars          = {}
 }
 
@@ -41,8 +41,8 @@ module "aws_iam_codebuild" {
 
   assume_role_policy = file("${path.root}/policies/code_build_assume_role.json")
   template           = file("${path.root}/policies/cicd_policy.json")
-  role_name          = "${local.resource_name_prefix}_cicd_codebuild-role"
-  policy_name        = "${local.resource_name_prefix}_cicd_codebuild-policy"
+  role_name          = "sam_cicd_codebuild_role"
+  policy_name        = "sam_cicd_codebuild_policy"
   role_vars          = {}
 }
 
@@ -54,9 +54,11 @@ module "aws_iam_cloudformation" {
 
   assume_role_policy = file("${path.root}/policies/cf_assume_role.json")
   template           = file("${path.root}/policies/cf_policy.json")
-  role_name          = "${local.resource_name_prefix}_cicd_cf-role"
-  policy_name        = "${local.resource_name_prefix}_cicd_cf-policy"
-  role_vars          = {}
+  role_name          = "sam_cicd_cf_role"
+  policy_name        = "sam_cicd_cf_policy"
+  role_vars = {
+    codepipeline_role_arn = module.aws_sam_iam.role_arn
+  }
 }
 
 
@@ -195,7 +197,7 @@ resource "aws_codepipeline" "_" {
       owner           = "AWS"
       provider        = "CloudFormation"
       input_artifacts = ["build"]
-      role_arn        = module.aws_iam_cloudformation.role_arn
+      role_arn        = try(module.aws_iam_cloudformation.role_arn, "")
       version         = 1
       run_order       = 1
 
@@ -203,10 +205,10 @@ resource "aws_codepipeline" "_" {
         ActionMode            = "CHANGE_SET_REPLACE"
         Capabilities          = "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND"
         OutputFileName        = "ChangeSetOutput.json"
-        role_arn              = module.aws_iam_cloudformation.role_arn
+        RoleArn               = try(module.aws_iam_cloudformation.role_arn, "")
         StackName             = "${var.stack_name}"
         TemplatePath          = "build::packaged.yaml"
-        ChangeSetName         = "${var.stack_name}_deploy"
+        ChangeSetName         = "${var.stack_name}-deploy"
         TemplateConfiguration = "build::configuration.json"
       }
     }

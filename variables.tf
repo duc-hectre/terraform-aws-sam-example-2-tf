@@ -17,7 +17,12 @@ variable "resource_tag_name" {
   default     = "todo-a2"
 }
 
-variable "codestar_connector_credentials" {
+variable "tf_codestar_connector_credentials" {
+  description = "Connection to github repository"
+  type        = string
+}
+
+variable "sam_codestar_connector_credentials" {
   description = "Connection to github repository"
   type        = string
 }

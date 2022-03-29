@@ -7,7 +7,20 @@
       "Resource": ["*"]
     },
     {
-      "Action": ["logs:*", "s3:*", "codebuild:*", "secretsmanager:*", "iam:*", "sqs:*", "dynamodb:*", "apigateway:*", "lambda:*", "codepipeline:*", "ssm:*"],
+      "Action": [
+        "logs:*",
+        "s3:*",
+        "codebuild:*",
+        "secretsmanager:*",
+        "iam:*",
+        "sqs:*",
+        "dynamodb:*",
+        "apigateway:*",
+        "lambda:*",
+        "codepipeline:*",
+        "ssm:*",
+        "cloudformation:*"
+      ],
       "Resource": ["*"],
       "Effect": "Allow"
     }
