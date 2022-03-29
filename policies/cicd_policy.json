@@ -1,0 +1,15 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["codestar-connections:UseConnection"],
+      "Resource": ["*"]
+    },
+    {
+      "Action": ["logs:*", "s3:*", "codebuild:*", "secretsmanager:*", "iam:*", "sqs:*", "dynamodb:*", "apigateway:*", "lambda:*", "codepipeline:*"],
+      "Resource": ["*"],
+      "Effect": "Allow"
+    }
+  ]
+}

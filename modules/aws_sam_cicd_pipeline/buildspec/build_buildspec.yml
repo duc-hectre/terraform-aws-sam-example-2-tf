@@ -1,0 +1,9 @@
+version: 0.2
+phases:
+  pre_build:
+    commands:
+      - cd ./sam/todo_handler
+  
+  build:
+    commands:
+      - sam build
