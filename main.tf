@@ -84,5 +84,20 @@ module "aws_tf_cicd_pipeline" {
   github_branch        = "main"
 
   codestar_connector_credentials = var.codestar_connector_credentials
-  pipeline_artifact_bucket       = "${local.resource_name_prefix}-artifact-bucket"
+  pipeline_artifact_bucket       = "${local.resource_name_prefix}-tf-artifact-bucket"
+}
+
+module "aws_sam_cicd_pipeline" {
+  source = "./modules/aws_sam_cicd_pipeline"
+
+  environment       = var.environment
+  region            = var.region
+  resource_tag_name = var.resource_tag_name
+
+  github_repository_id = "duc-hectre/terraform-aws-sam-example-2-sam"
+  github_branch        = "main"
+  stack_name           = "${local.resource_name_prefix}-stack-name"
+
+  codestar_connector_credentials = var.codestar_connector_credentials
+  pipeline_artifact_bucket       = "${local.resource_name_prefix}-sam-artifact-bucket"
 }

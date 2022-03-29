@@ -1,5 +1,5 @@
 locals {
-  resource_name_prefix = "${var.environment}-${var.resource_tag_name}"
+  resource_name_prefix = "${var.environment}-${var.resource_tag_name}-tf"
 
   tags = {
     Environment = var.environment

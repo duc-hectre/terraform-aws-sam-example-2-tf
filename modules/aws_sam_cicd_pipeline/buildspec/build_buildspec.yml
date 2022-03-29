@@ -1,9 +1,17 @@
 version: 0.2
 phases:
-  pre_build:
+  install:
+    runtime-versions:
+      nodejs: 12
     commands:
-      - cd ./sam/todo_handler
-  
+      - pip3 install --upgrade aws-sam-cli      
   build:
     commands:
       - sam build
+  post_build:
+    commands:
+      - sam package --s3-bucket $ARTIFACT_BUCKET --output-template-file packaged.yaml 
+artifacts:
+  files:
+    - packaged.yaml
+    - configuration.json

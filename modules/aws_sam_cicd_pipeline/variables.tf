@@ -34,3 +34,8 @@ variable "github_repository_id" {
 variable "github_branch" {
   description = "github branch to pull the source code"
 }
+
+
+variable "stack_name" {
+  description = "CloudFormation stack name"
+}
