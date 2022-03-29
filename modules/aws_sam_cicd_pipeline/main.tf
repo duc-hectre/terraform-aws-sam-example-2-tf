@@ -46,6 +46,19 @@ module "aws_iam_codebuild" {
   role_vars          = {}
 }
 
+module "aws_iam_cloudformation" {
+  source            = "../aws_iam"
+  environment       = var.environment
+  region            = var.region
+  resource_tag_name = var.resource_tag_name
+
+  assume_role_policy = file("${path.root}/policies/cf_assume_role.json")
+  template           = file("${path.root}/policies/cf_policy.json")
+  role_name          = "${local.resource_name_prefix}_cicd_cf-role"
+  policy_name        = "${local.resource_name_prefix}_cicd_cf-policy"
+  role_vars          = {}
+}
+
 
 resource "aws_codebuild_project" "sam_test" {
   name        = "${local.resource_name_prefix}_cicd_test"
@@ -182,15 +195,15 @@ resource "aws_codepipeline" "_" {
       owner           = "AWS"
       provider        = "CloudFormation"
       input_artifacts = ["build"]
-      # role_arn        = try(module.iam_cloudformation.role_arn, "")
-      version   = 1
-      run_order = 1
+      role_arn        = module.aws_iam_cloudformation.role_arn
+      version         = 1
+      run_order       = 1
 
       configuration = {
-        ActionMode     = "CHANGE_SET_REPLACE"
-        Capabilities   = "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND"
-        OutputFileName = "ChangeSetOutput.json"
-        # RoleArn               = try(module.iam_cloudformation.role_arn, "")
+        ActionMode            = "CHANGE_SET_REPLACE"
+        Capabilities          = "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND"
+        OutputFileName        = "ChangeSetOutput.json"
+        role_arn              = module.aws_iam_cloudformation.role_arn
         StackName             = "${var.stack_name}"
         TemplatePath          = "build::packaged.yaml"
         ChangeSetName         = "${var.stack_name}_deploy"
