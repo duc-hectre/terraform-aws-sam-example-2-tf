@@ -68,7 +68,7 @@ module "aws_ssm_params" {
     },
     "sqs_queue_arn" = {
       "type" : "String",
-      "value" : aws_sqs_queue._.name
+      "value" : aws_sqs_queue._.arn
     },
   }
 }
