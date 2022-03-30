@@ -66,6 +66,9 @@ Following the steps below to get the project starts.
 
 1. **Install prerequisites**
 
+   - Install AWS CLI tool An AWS account with proper permission with the services we are intend to initiate & use.
+   - Install AWS CLI tool Installing or updating the latest version of the AWS CLI - AWS Command Line Interface
+   - Configure aws credential.
    - Install Docker - that use to simulate the AWS environment for debugging
    - Install Terraform CLI
    - Install some extensions for VS Code:
