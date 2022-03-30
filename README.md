@@ -25,7 +25,7 @@ The AWS structure is:
 Regarding to this sample, this is the repository for Terraform part, which contains the definition about SQS, DynamoDB, Code Pipeline for terraform deployment as well as SAM deployment.
 The project structure looks like image below.
 
-![Sample project structure](https://github.com/duc-hectre/duc-hectre/blob/main/tf_1_project_structure.png?raw=true)
+![Sample project structure](https://github.com/duc-hectre/duc-hectre/blob/main/tf_2_tf_project_structure.png)
 
 If any changes not regarding to API gateway, Lambda, they will be defined in this terraform parts.
 
@@ -87,7 +87,7 @@ Following the steps below to get the project starts.
 
    For details of Pipeline definition, refer to the terraform module located in \_./modules/aws_tf_cicd_pipeline
 
-   ![CI/CD pipeline](https://github.com/duc-hectre/duc-hectre/blob/main/tf_1_cicd_pipeline.png?raw=true)
+   ![CI/CD pipeline](https://github.com/duc-hectre/duc-hectre/blob/main/tf_1_tf_cicd_pipeline.png)
 
 3. **Destroy**
 
