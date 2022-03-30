@@ -10,7 +10,7 @@ The approach is:
 - Use SAM:
   - To develop, test & debug the source code of lambda function.
   - Build & deploy for API Gateway, Lambda as well as related IAM roles, policies.
-  - There is a separated github repository for this part.
+  - There is a separated github repository for this part. Can find the SAM repo here [SAM part](https://github.com/duc-hectre/terraform-aws-sam-example-2-sam)
 
 # Sample architecture
 
