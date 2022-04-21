@@ -1,5 +1,5 @@
-tf_codestar_connector_credentials  = "arn:aws:codestar-connections:ap-southeast-1:983670951732:connection/b644772d-a629-45d6-948c-128dac87a5a5"
-sam_codestar_connector_credentials = "arn:aws:codestar-connections:ap-southeast-1:983670951732:connection/b644772d-a629-45d6-948c-128dac87a5a5"
+tf_codestar_connector_credentials  = "arn:aws:codestar-connections:ap-southeast-1:983670951732:connection/0bd4fb43-9f8d-49d0-86d7-3f55b26f5b46"
+sam_codestar_connector_credentials = "arn:aws:codestar-connections:ap-southeast-1:983670951732:connection/f92fdea0-f1ae-4fee-abf7-5ab52266b61f"
 environment                        = "prod"
 region                             = "ap-southeast-1"
 resource_tag_name                  = "todo-a2"
