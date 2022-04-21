@@ -15,5 +15,5 @@ output "sqs_arn" {
 }
 
 output "cicd_pipeline_name" {
-  value = module.aws_tf_cicd_pipeline.cicd_name
+  value = module.aws_tf_cicd_pipeline.pipeline_name
 }

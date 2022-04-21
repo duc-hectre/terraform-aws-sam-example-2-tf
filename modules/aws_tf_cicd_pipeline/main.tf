@@ -1,5 +1,5 @@
 locals {
-  resource_name_prefix = "${var.environment}-${var.resource_tag_name}-tf"
+  resource_name_prefix = "${var.environment}-${var.resource_tag_name}"
 
   tags = {
     Environment = var.environment
@@ -9,8 +9,9 @@ locals {
 
 
 resource "aws_s3_bucket" "_" {
-  bucket = var.pipeline_artifact_bucket
+  bucket = "${local.resource_name_prefix}-${var.pipeline_artifact_bucket}-${var.pipeline_name}"
   # acl    = "private"
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_acl" "_" {
@@ -27,8 +28,8 @@ module "aws_iam" {
 
   assume_role_policy = file("${path.root}/policies/code_pipeline_assume_role.json")
   template           = file("${path.root}/policies/cicd_policy.json")
-  role_name          = "${local.resource_name_prefix}_cicd_pipeline_role"
-  policy_name        = "${local.resource_name_prefix}_cicd_pipeline_policy"
+  role_name          = "${local.resource_name_prefix}-${var.pipeline_name}-pipeline-role"
+  policy_name        = "${local.resource_name_prefix}-${var.pipeline_name}-pipeline-policy"
   role_vars          = {}
 }
 
@@ -41,14 +42,14 @@ module "aws_iam_codebuild" {
 
   assume_role_policy = file("${path.root}/policies/code_build_assume_role.json")
   template           = file("${path.root}/policies/cicd_policy.json")
-  role_name          = "${local.resource_name_prefix}_cicd_codebuild_role"
-  policy_name        = "${local.resource_name_prefix}_cicd_codebuild_policy"
+  role_name          = "${local.resource_name_prefix}-${var.pipeline_name}-codebuild-role"
+  policy_name        = "${local.resource_name_prefix}-${var.pipeline_name}-codebuild-policy"
   role_vars          = {}
 }
 
 
 resource "aws_codebuild_project" "tf_plan" {
-  name        = "${local.resource_name_prefix}_cicd_plan"
+  name        = "${local.resource_name_prefix}-${var.pipeline_name}-plan"
   description = "Plan state for terraform"
 
   service_role = module.aws_iam_codebuild.role_arn
@@ -67,7 +68,14 @@ resource "aws_codebuild_project" "tf_plan" {
     #   credential          = var.dockerhub_credentials
     #   credential_provider = "SECRETS_MANAGER"
     # }
-
+    environment_variable {
+      name  = "BACKEND_CONFIG"
+      value = "./environments/${var.environment}/${var.environment}.tfbackend"
+    }
+    environment_variable {
+      name  = "TF_VARS"
+      value = "./environments/${var.environment}/${var.environment}.tfvars"
+    }
   }
 
   source {
@@ -77,7 +85,7 @@ resource "aws_codebuild_project" "tf_plan" {
 }
 
 resource "aws_codebuild_project" "tf_apply" {
-  name        = "${local.resource_name_prefix}_cicd_apply"
+  name        = "${local.resource_name_prefix}-${var.pipeline_name}-apply"
   description = "Apply state for terraform"
 
   service_role = module.aws_iam_codebuild.role_arn
@@ -96,7 +104,14 @@ resource "aws_codebuild_project" "tf_apply" {
     #   credential          = var.dockerhub_credentials
     #   credential_provider = "SECRETS_MANAGER"
     # }
-
+    environment_variable {
+      name  = "BACKEND_CONFIG"
+      value = "./environments/${var.environment}/${var.environment}.tfbackend"
+    }
+    environment_variable {
+      name  = "TF_VARS"
+      value = "./environments/${var.environment}/${var.environment}.tfvars"
+    }
   }
 
   source {
@@ -107,7 +122,7 @@ resource "aws_codebuild_project" "tf_apply" {
 
 
 resource "aws_codepipeline" "_" {
-  name     = "${local.resource_name_prefix}_cicd"
+  name     = "${local.resource_name_prefix}-${var.pipeline_name}"
   role_arn = module.aws_iam.role_arn
 
   artifact_store {
@@ -123,7 +138,7 @@ resource "aws_codepipeline" "_" {
       owner            = "AWS"
       provider         = "CodeStarSourceConnection"
       version          = "1"
-      output_artifacts = ["${local.resource_name_prefix}_code"]
+      output_artifacts = ["${local.resource_name_prefix}-${var.pipeline_name}-code"]
       configuration = {
         FullRepositoryId     = var.github_repository_id
         BranchName           = var.github_branch
@@ -142,7 +157,7 @@ resource "aws_codepipeline" "_" {
       provider        = "CodeBuild"
       version         = "1"
       owner           = "AWS"
-      input_artifacts = ["${local.resource_name_prefix}_code"]
+      input_artifacts = ["${local.resource_name_prefix}-${var.pipeline_name}-code"]
       configuration = {
         ProjectName = aws_codebuild_project.tf_plan.name
       }
@@ -157,7 +172,7 @@ resource "aws_codepipeline" "_" {
       provider        = "CodeBuild"
       version         = "1"
       owner           = "AWS"
-      input_artifacts = ["${local.resource_name_prefix}_code"]
+      input_artifacts = ["${local.resource_name_prefix}-${var.pipeline_name}-code"]
       configuration = {
         ProjectName = aws_codebuild_project.tf_apply.name
       }

@@ -2,9 +2,10 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - terraform init
+      - terraform init -reconfigure -backend-config=$BACKEND_CONFIG
       - terraform validate
   
   build:
     commands:
-      - terraform apply --auto-approve
+      - terraform plan -var-file $TF_VARS -out .\environments\dev\deploy.plan
+      - terraform apply ".\\environments\\dev\\deploy.plan"

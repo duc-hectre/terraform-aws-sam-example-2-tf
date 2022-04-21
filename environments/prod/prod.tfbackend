@@ -1,0 +1,5 @@
+bucket         = "prod-todo-a2-tf-state-bucket"
+region         = "ap-southeast-1"                               
+key            = "terraform.tfstate"
+dynamodb_table = "prod-todo-a2-tf-state-table"
+encrypt        = true

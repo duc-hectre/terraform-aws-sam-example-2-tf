@@ -35,7 +35,10 @@ variable "github_branch" {
   description = "github branch to pull the source code"
 }
 
-
 variable "stack_name" {
   description = "CloudFormation stack name"
+}
+
+variable "pipeline_name" {
+  description = "Code pipeline name for SAM part"
 }

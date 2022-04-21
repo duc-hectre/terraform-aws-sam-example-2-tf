@@ -1,5 +1,5 @@
 locals {
-  resource_name_prefix = "${var.environment}-${var.resource_tag_name}-sam"
+  resource_name_prefix = "${var.environment}-${var.resource_tag_name}"
 
   tags = {
     Environment = var.environment
@@ -9,7 +9,8 @@ locals {
 
 
 resource "aws_s3_bucket" "_" {
-  bucket = var.pipeline_artifact_bucket
+  bucket        = "${local.resource_name_prefix}-${var.pipeline_artifact_bucket}-${var.pipeline_name}"
+  force_destroy = true
   # acl    = "private"
 }
 
@@ -27,8 +28,8 @@ module "aws_sam_iam" {
 
   assume_role_policy = file("${path.root}/policies/code_pipeline_assume_role.json")
   template           = file("${path.root}/policies/cicd_policy.json")
-  role_name          = "sam_cicd_pipeline_role"
-  policy_name        = "sam_cicd_pipeline_policy"
+  role_name          = "${var.pipeline_name}-pipeline-role"
+  policy_name        = "${var.pipeline_name}-pipeline-policy"
   role_vars          = {}
 }
 
@@ -41,8 +42,8 @@ module "aws_iam_codebuild" {
 
   assume_role_policy = file("${path.root}/policies/code_build_assume_role.json")
   template           = file("${path.root}/policies/cicd_policy.json")
-  role_name          = "sam_cicd_codebuild_role"
-  policy_name        = "sam_cicd_codebuild_policy"
+  role_name          = "${var.pipeline_name}-codebuild-role"
+  policy_name        = "${var.pipeline_name}-codebuild-policy"
   role_vars          = {}
 }
 
@@ -54,8 +55,8 @@ module "aws_iam_cloudformation" {
 
   assume_role_policy = file("${path.root}/policies/cf_assume_role.json")
   template           = file("${path.root}/policies/cf_policy.json")
-  role_name          = "sam_cicd_cf_role"
-  policy_name        = "sam_cicd_cf_policy"
+  role_name          = "${var.pipeline_name}-cf-role"
+  policy_name        = "${var.pipeline_name}-cf-policy"
   role_vars = {
     codepipeline_role_arn = module.aws_sam_iam.role_arn
   }
@@ -63,7 +64,7 @@ module "aws_iam_cloudformation" {
 
 
 resource "aws_codebuild_project" "sam_test" {
-  name        = "${local.resource_name_prefix}_cicd_test"
+  name        = "${local.resource_name_prefix}-${var.pipeline_name}-test"
   description = "State to test lambda code using pytest"
 
   service_role = module.aws_iam_codebuild.role_arn
@@ -91,7 +92,7 @@ resource "aws_codebuild_project" "sam_test" {
 }
 
 resource "aws_codebuild_project" "sam_build" {
-  name        = "${local.resource_name_prefix}_cicd_build"
+  name        = "${local.resource_name_prefix}-${var.pipeline_name}-build"
   description = "Buid state for sam"
 
   service_role = module.aws_iam_codebuild.role_arn
@@ -116,7 +117,10 @@ resource "aws_codebuild_project" "sam_build" {
       name  = "ARTIFACT_BUCKET"
       value = aws_s3_bucket._.bucket
     }
-
+    environment_variable {
+      name  = "SAM_VARS"
+      value = "AppName=${var.resource_tag_name} Environment=${var.environment} DynamoDbName=/${var.environment}/${var.resource_tag_name}/${aws_dynamodb_table._.name} SQSQueueName=/${var.environment}/${var.resource_tag_name}/${aws_sqs_queue._.name} DynamoDbArn=/${var.environment}/${var.resource_tag_name}/${aws_dynamodb_table._.arn} SQSQueueArn=/${var.environment}/${var.resource_tag_name}/${aws_sqs_queue._.arn}"
+    }
   }
 
   source {
@@ -127,7 +131,7 @@ resource "aws_codebuild_project" "sam_build" {
 
 resource "aws_codepipeline" "_" {
 
-  name     = "${local.resource_name_prefix}_cicd"
+  name     = "${local.resource_name_prefix}-${var.pipeline_name}"
   role_arn = module.aws_sam_iam.role_arn
 
   artifact_store {
@@ -143,7 +147,7 @@ resource "aws_codepipeline" "_" {
       owner            = "AWS"
       provider         = "CodeStarSourceConnection"
       version          = "1"
-      output_artifacts = ["${local.resource_name_prefix}_code"]
+      output_artifacts = ["${local.resource_name_prefix}-code"]
       configuration = {
         FullRepositoryId     = var.github_repository_id
         BranchName           = var.github_branch
@@ -162,7 +166,7 @@ resource "aws_codepipeline" "_" {
       provider        = "CodeBuild"
       version         = "1"
       owner           = "AWS"
-      input_artifacts = ["${local.resource_name_prefix}_code"]
+      input_artifacts = ["${local.resource_name_prefix}-code"]
       # output_artifacts = ["tf-code-sam-build"]
       configuration = {
         ProjectName = aws_codebuild_project.sam_test.name
@@ -179,7 +183,7 @@ resource "aws_codepipeline" "_" {
       owner            = "AWS"
       provider         = "CodeBuild"
       version          = "1"
-      input_artifacts  = ["${local.resource_name_prefix}_code"]
+      input_artifacts  = ["${local.resource_name_prefix}-code"]
       output_artifacts = ["build"]
 
       configuration = {
@@ -206,9 +210,9 @@ resource "aws_codepipeline" "_" {
         Capabilities          = "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND"
         OutputFileName        = "ChangeSetOutput.json"
         RoleArn               = try(module.aws_iam_cloudformation.role_arn, "")
-        StackName             = "${var.stack_name}"
+        StackName             = "${local.resource_name_prefix}-${var.stack_name}"
         TemplatePath          = "build::packaged.yaml"
-        ChangeSetName         = "${var.stack_name}-deploy"
+        ChangeSetName         = "${local.resource_name_prefix}-${var.stack_name}-deploy"
         TemplateConfiguration = "build::configuration.json"
       }
     }
@@ -226,8 +230,8 @@ resource "aws_codepipeline" "_" {
         ActionMode     = "CHANGE_SET_EXECUTE"
         Capabilities   = "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND"
         OutputFileName = "ChangeSetExecuteOutput.json"
-        StackName      = var.stack_name
-        ChangeSetName  = "${var.stack_name}-deploy"
+        StackName      = "${local.resource_name_prefix}-${var.stack_name}"
+        ChangeSetName  = "${local.resource_name_prefix}-${var.stack_name}-deploy"
       }
     }
   }

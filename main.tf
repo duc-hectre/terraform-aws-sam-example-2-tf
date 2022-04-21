@@ -14,12 +14,26 @@ terraform {
       version = "~> 3.27"
     }
   }
+  backend "s3" {    
+  }
 }
 
 provider "aws" {
   profile = "srvadm"
   region  = "ap-southeast-1"
 }
+
+
+module "backend_remote_state" {
+  source                           = "./modules/backend_remote_state"
+  environment                      = var.environment
+  region                           = var.region
+  resource_tag_name                = var.resource_tag_name
+  terraform_user                   = var.terraform_user
+  bucket_terraform_state_base_name = var.bucket_terraform_state_base_name
+  table_terraform_lock_base_name   = var.table_terraform_lock_base_name
+}
+
 
 #dynamodb
 
@@ -80,24 +94,26 @@ module "aws_tf_cicd_pipeline" {
   region            = var.region
   resource_tag_name = var.resource_tag_name
 
-  github_repository_id = "duc-hectre/terraform-aws-sam-example-2-tf"
-  github_branch        = "main"
+  github_repository_id = var.tf_repository
+  github_branch        = var.tf_branch_name
+  pipeline_name        = "tf-cicd"
 
   codestar_connector_credentials = var.tf_codestar_connector_credentials
-  pipeline_artifact_bucket       = "${local.resource_name_prefix}-tf-artifact-bucket"
+  pipeline_artifact_bucket       = "artifact-bucket"
 }
 
-module "aws_sam_cicd_pipeline" {
+module "aws_sam_dev_cicd_pipeline" {
   source = "./modules/aws_sam_cicd_pipeline"
 
   environment       = var.environment
   region            = var.region
   resource_tag_name = var.resource_tag_name
 
-  github_repository_id = "duc-hectre/terraform-aws-sam-example-2-sam"
-  github_branch        = "main"
-  stack_name           = "${local.resource_name_prefix}-stack-name"
+  github_repository_id = var.sam_repository
+  github_branch        = var.sam_branch_name
+  stack_name           = "${var.resource_tag_name}-stack-name"
+  pipeline_name        = "sam-pipeline"
 
   codestar_connector_credentials = var.sam_codestar_connector_credentials
-  pipeline_artifact_bucket       = "${local.resource_name_prefix}-sam-artifact-bucket"
+  pipeline_artifact_bucket       = "artifact-bucket"
 }
