@@ -42,3 +42,6 @@ variable "stack_name" {
 variable "pipeline_name" {
   description = "Code pipeline name for SAM part"
 }
+variable "sam_environment_vars" {
+  description = "Code pipeline name for SAM part"
+}

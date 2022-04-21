@@ -14,7 +14,7 @@ terraform {
       version = "~> 3.27"
     }
   }
-  backend "s3" {    
+  backend "s3" {
   }
 }
 
@@ -109,10 +109,11 @@ module "aws_sam_dev_cicd_pipeline" {
   region            = var.region
   resource_tag_name = var.resource_tag_name
 
-  github_repository_id = var.sam_repository
-  github_branch        = var.sam_branch_name
-  stack_name           = "${var.resource_tag_name}-stack-name"
-  pipeline_name        = "sam-pipeline"
+  github_repository_id    = var.sam_repository
+  github_branch           = var.sam_branch_name
+  stack_name              = "${var.resource_tag_name}-stack-name"
+  pipeline_name           = "sam-pipeline"
+  sam_environment_vars = "AppName=${var.resource_tag_name} Environment=${var.environment} DynamoDbName=/${var.environment}/${var.resource_tag_name}/${aws_dynamodb_table._.name} SQSQueueName=/${var.environment}/${var.resource_tag_name}/${aws_sqs_queue._.name} DynamoDbArn=/${var.environment}/${var.resource_tag_name}/${aws_dynamodb_table._.arn} SQSQueueArn=/${var.environment}/${var.resource_tag_name}/${aws_sqs_queue._.arn}"
 
   codestar_connector_credentials = var.sam_codestar_connector_credentials
   pipeline_artifact_bucket       = "artifact-bucket"

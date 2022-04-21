@@ -119,7 +119,7 @@ resource "aws_codebuild_project" "sam_build" {
     }
     environment_variable {
       name  = "SAM_VARS"
-      value = "AppName=${var.resource_tag_name} Environment=${var.environment} DynamoDbName=/${var.environment}/${var.resource_tag_name}/${aws_dynamodb_table._.name} SQSQueueName=/${var.environment}/${var.resource_tag_name}/${aws_sqs_queue._.name} DynamoDbArn=/${var.environment}/${var.resource_tag_name}/${aws_dynamodb_table._.arn} SQSQueueArn=/${var.environment}/${var.resource_tag_name}/${aws_sqs_queue._.arn}"
+      value = var.sam_environment_vars
     }
   }
 
