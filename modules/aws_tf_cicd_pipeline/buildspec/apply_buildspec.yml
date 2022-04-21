@@ -7,5 +7,5 @@ phases:
   
   build:
     commands:
-      - terraform plan -var-file $TF_VARS -out ".\\environments\\dev\\deploy.plan"
-      - terraform apply ".\\environments\\dev\\deploy.plan"
+      - terraform plan -var-file $TF_VARS -out "deploy.plan"
+      - terraform apply "deploy.plan"
