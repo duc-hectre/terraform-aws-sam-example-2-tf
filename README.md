@@ -10,7 +10,7 @@ The approach is:
 - Use SAM:
   - To develop, test & debug the source code of lambda function.
   - Build & deploy for API Gateway, Lambda as well as related IAM roles, policies.
-  - There is a separated github repository for this part.
+  - There is a separated github repository for this part. Can find the SAM repo here [SAM part](https://github.com/duc-hectre/terraform-aws-sam-example-2-sam)
 
 # Sample architecture
 
@@ -22,7 +22,38 @@ The AWS structure is:
 
 # Get started.
 
-Regarding to this sample, this is the repository for Terraform part, which contains the definition about SQS, DynamoDB, Code Pipeline for terraform deployment as well as SAM deployment.
+Regarding to this sample, this is the repository for Terraform part, which contains the definition about SQS, DynamoDB, Code Pipeline for terraform deployment as well as SAM deployment. 
+
+The output such as SQS arn/name, DynamoDb arn/name is populated to SSM Parameter Store to share with SAM part.
+
+```
+module "aws_ssm_params" {
+  source = "./modules/aws_ssm"
+
+  app_name    = var.resource_tag_name
+  environment = var.environment
+
+  parameters = {
+    "dynamodb_name" = {
+      "type" : "String",
+      "value" : aws_dynamodb_table._.name
+    },
+    "dynamodb_arn" = {
+      "type" : "String",
+      "value" : aws_dynamodb_table._.arn
+    },
+    "sqs_queue_name" = {
+      "type" : "String",
+      "value" : aws_sqs_queue._.name
+    },
+    "sqs_queue_arn" = {
+      "type" : "String",
+      "value" : aws_sqs_queue._.arn
+    },
+  }
+}
+```
+
 The project structure looks like image below.
 
 ![Sample project structure](https://github.com/duc-hectre/duc-hectre/blob/main/tf_2_tf_project_structure.png)
@@ -35,12 +66,18 @@ Following the steps below to get the project starts.
 
 1. **Install prerequisites**
 
+   - Install AWS CLI tool An AWS account with proper permission with the services we are intend to initiate & use.
+   - Install AWS CLI tool Installing or updating the latest version of the AWS CLI - AWS Command Line Interface
+   - Configure aws credential.
    - Install Docker - that use to simulate the AWS environment for debugging
    - Install Terraform CLI
-
    - Install some extensions for VS Code:
-
      - Terraform
+   - Create a CodeStarConnection to establish the connection with SAM repo & Terraform Repo in Github. Then update the corresponding variables value in **terraform.tfvars** file.
+   ```
+    tf_codestar_connector_credentials  = "code-star-arn-for-terraform-repo"
+    sam_codestar_connector_credentials = "code-star-arn-for-sam-repo"
+   ```
 
 2. **Deploy**
 
